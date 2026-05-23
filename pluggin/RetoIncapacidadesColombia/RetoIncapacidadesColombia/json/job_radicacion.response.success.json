@@ -1,0 +1,19 @@
+{
+  "job_uuid": "job-rpa-999",
+  "incapacidad_uuid": "inc-456",
+  "event": "job_completed",
+  "status": "success",
+  "result": {
+    "radicacion": {
+      "status": "success",
+      "numero_radicado": "RAD-123456",
+      "mensaje": "Radicación exitosa",
+      "evidencias": [
+        {
+          "tipo": "screenshot",
+          "url": "https://s3.amazonaws.com/evidencia-radicacion.png"
+        }
+      ]
+    }
+  }
+}

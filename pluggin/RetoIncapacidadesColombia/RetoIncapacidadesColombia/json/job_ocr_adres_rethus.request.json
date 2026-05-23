@@ -1,0 +1,40 @@
+{
+  "job": {
+    "uuid": "job-ocr-123",
+    "type": "ocr_adres_rethus",
+    "callback_url": "https://laravel-app.com/api/internal/automation/jobs/job-ocr-123/result"
+  },
+  "empresa": {
+    "id": 33,
+    "tipo_identificacion": "NIT",
+    "numero_identificacion": "900123456",
+    "razon_social": "EMPRESA SAS",
+    "correo_contacto": "nomina@empresa.com",
+    "telefono_contacto": "3000000000"
+  },
+  "trabajador": {
+    "id": 789,
+    "tipo_documento": "CC",
+    "numero_documento": "123456789",
+    "nombres": "JUAN CARLOS",
+    "apellidos": "PEREZ LOPEZ",
+    "eps_actual": "SANITAS",
+    "tipo_cotizante": "DEPENDIENTE",
+    "ibc": 2500000
+  },
+  "caso_preliminar": {
+    "id": 456,
+    "uuid": "inc-456",
+    "estado_actual": "pendiente_extraccion"
+  },
+  "adjuntos": [
+    {
+      "tipo": "CERTIFICADO_INCAPACIDAD",
+      "archivo_id": 1001,
+      "nombre_original": "incapacidad.pdf",
+      "mime_type": "application/pdf",
+      "size_kb": 850,
+      "url_temporal": "https://s3.amazonaws.com/archivo-firmado-1001.pdf"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "job_uuid": "job-ocr-123",
+  "incapacidad_uuid": "inc-456",
+  "event": "job_completed",
+  "status": "success",
+  "result": {
+    "ocr": {
+      "status": "processed",
+      "extracted_data": {
+        "numero_incapacidad": "INC-12345",
+        "tipo": "ENFERMEDAD_GENERAL",
+        "origen": "COMUN",
+        "fecha_expedicion": "2026-05-20",
+        "fecha_atencion": "2026-05-20",
+        "fecha_inicio": "2026-05-20",
+        "fecha_fin": "2026-05-24",
+        "dias": 5,
+        "diagnostico_codigo": "M545",
+        "eps_detectada": "SANITAS",
+        "medico_nombre": "MEDICO TRATANTE",
+        "registro_medico": "123456",
+        "ips": "IPS EJEMPLO",
+        "es_prorroga": false
+      },
+      "confidence": {
+        "eps_detectada": 0.91,
+        "diagnostico_codigo": 0.88,
+        "medico_nombre": 0.84
+      }
+    },
+    "adres": {
+      "status": "success",
+      "fecha_validacion": "2026-05-20",
+      "eps_encontrada": "SANITAS",
+      "estado_afiliacion": "ACTIVO",
+      "coincide_con_eps_laravel": true
+    },
+    "rethus": {
+      "status": "success",
+      "medico": {
+        "nombre": "MEDICO TRATANTE",
+        "registro_medico": "123456",
+        "especialidad": "MEDICINA GENERAL",
+        "rethus": "VALIDADO"
+      }
+    }
+  }
+}

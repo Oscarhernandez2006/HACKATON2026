@@ -1,0 +1,17 @@
+{
+  "job_uuid": "job-rpa-999",
+  "incapacidad_uuid": "inc-456",
+  "event": "job_failed",
+  "status": "failed",
+  "error": {
+    "code": "PORTAL_TIMEOUT",
+    "message": "El portal no respondió dentro del tiempo esperado",
+    "step": "upload_document"
+  },
+  "evidencias": [
+    {
+      "tipo": "screenshot",
+      "url": "https://s3.amazonaws.com/error-timeout.png"
+    }
+  ]
+}

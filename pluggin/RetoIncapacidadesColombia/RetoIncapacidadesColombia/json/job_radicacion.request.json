@@ -1,0 +1,75 @@
+{
+  "job": {
+    "uuid": "job-rpa-999",
+    "type": "eps_radicacion",
+    "callback_url": "https://laravel-app.com/api/internal/automation/jobs/job-rpa-999/result"
+  },
+  "empresa": {
+    "id": 33,
+    "tipo_identificacion": "NIT",
+    "numero_identificacion": "900123456",
+    "razon_social": "EMPRESA SAS",
+    "correo_contacto": "nomina@empresa.com",
+    "telefono_contacto": "3000000000"
+  },
+  "trabajador": {
+    "id": 789,
+    "tipo_documento": "CC",
+    "numero_documento": "123456789",
+    "nombres": "JUAN CARLOS",
+    "apellidos": "PEREZ LOPEZ",
+    "eps_actual": "SANITAS",
+    "tipo_cotizante": "DEPENDIENTE",
+    "ibc": 2500000
+  },
+  "incapacidad": {
+    "id": 456,
+    "uuid": "inc-456",
+    "numero_incapacidad": "INC-12345",
+    "tipo": "ENFERMEDAD_GENERAL",
+    "origen": "COMUN",
+    "fecha_expedicion": "2026-05-20",
+    "fecha_atencion": "2026-05-20",
+    "fecha_inicio": "2026-05-20",
+    "fecha_fin": "2026-05-24",
+    "dias": 5,
+    "diagnostico_codigo": "M545",
+    "es_prorroga": false,
+    "estado_actual": "validado"
+  },
+  "medico": {
+    "id":85,
+    "tipo_documento": "CC",
+    "numero_documento": "12344589",
+    "nombre": "MEDICO TRATANTE",
+    "especialidad": "MEDICINA GENERAL",
+    "registro_medico": "123456",
+    "rethus": "VALIDADO",
+    "ips": "IPS EJEMPLO"
+  },
+  "radicacion": {
+    "eps_code": "SANITAS",
+    "portal_url": "https://www.epssanitas.com/usuarios/web/nuevo-portal-eps/incapacidades-y-licencias1",
+    "adapter_key": "sanitas",
+    "max_file_size_kb": 12288,
+    "credencial_ref": "cred-999"
+  },
+  "adjuntos": [
+    {
+      "tipo": "CERTIFICADO_INCAPACIDAD",
+      "archivo_id": 1001,
+      "nombre_original": "incapacidad.pdf",
+      "mime_type": "application/pdf",
+      "size_kb": 850,
+      "url_temporal": "https://s3.amazonaws.com/archivo-firmado-1001.pdf"
+    },
+    {
+      "tipo": "HISTORIA_CLINICA_RESUMEN",
+      "archivo_id": 1002,
+      "nombre_original": "historia_clinica.pdf",
+      "mime_type": "application/pdf",
+      "size_kb": 1200,
+      "url_temporal": "https://s3.amazonaws.com/archivo-firmado-1002.pdf"
+    }
+  ]
+}
