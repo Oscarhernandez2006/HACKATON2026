@@ -23,11 +23,8 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
-    # ── OCR / IA ──
-    ocr_engine: str = "ai"  # ai | tesseract | textract
-    github_token: str = ""
-    ai_model: str = "gpt-chat-latest"
-    ai_base_url: str = "https://models.inference.ai.azure.com"
+    # ── OCR ──
+    ocr_engine: str = "tesseract"  # tesseract | textract
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
     aws_region: str = "us-east-1"

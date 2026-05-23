@@ -1,6 +1,6 @@
-"""Extractor de documentos con IA (GPT-4o Vision vía GitHub Models).
+"""Extractor de documentos con IA (Azure OpenAI — GPT-4o Vision).
 
-Envía la imagen/PDF del certificado de incapacidad a GPT-4o Vision
+Envía la imagen/PDF del certificado de incapacidad a Azure OpenAI
 y recibe los datos estructurados con confianza por campo.
 
 Ventajas sobre OCR+regex:
@@ -16,10 +16,8 @@ import base64
 import json
 from pathlib import Path
 
-import httpx
-from pdf2image import convert_from_path
-from PIL import Image
-import io
+import fitz  # PyMuPDF — renderiza PDF sin poppler
+from openai import AzureOpenAI
 
 from app.config import get_settings
 from app.logger import get_logger
@@ -67,8 +65,22 @@ Responde SOLO con JSON válido, sin markdown, sin explicaciones. Estructura:
 }"""
 
 
+def _get_client() -> AzureOpenAI:
+    """Crea el cliente AzureOpenAI con las credenciales de .env."""
+    settings = get_settings()
+    if not settings.azure_api_key:
+        raise ValueError(
+            "AZURE_API_KEY no configurado. Agrégalo en el archivo .env"
+        )
+    return AzureOpenAI(
+        api_version=settings.ai_api_version,
+        azure_endpoint=settings.ai_base_url,
+        api_key=settings.azure_api_key,
+    )
+
+
 def extract_with_ai(file_path: Path) -> OcrResult:
-    """Extrae datos estructurados de un documento usando GPT-4o Vision.
+    """Extrae datos estructurados de un documento usando Azure OpenAI Vision.
 
     Args:
         file_path: Ruta al archivo PDF, JPG o PNG.
@@ -76,117 +88,77 @@ def extract_with_ai(file_path: Path) -> OcrResult:
     Returns:
         OcrResult con datos extraídos y confianzas.
     """
-    settings = get_settings()
-
     # Convertir a imágenes base64
     images_b64 = _prepare_images(file_path)
     logger.info("imagenes_preparadas", total=len(images_b64), archivo=file_path.name)
 
-    # Construir mensaje para OpenAI
+    # Construir contenido del mensaje
     content = _build_message_content(images_b64)
 
-    # Llamar a OpenAI Vision (GitHub Models)
-    response_data = _call_openai(content, settings)
+    # Llamar a Azure OpenAI
+    response_data = _call_azure_openai(content)
 
     # Parsear respuesta
     return _parse_response(response_data)
 
 
-def _prepare_images(file_path: Path) -> list[dict]:
-    """Convierte el archivo a imágenes base64 para enviar al modelo."""
+def _prepare_images(file_path: Path) -> list[str]:
+    """Convierte el archivo a imágenes base64 con PyMuPDF (sin poppler)."""
     suffix = file_path.suffix.lower()
     images_b64 = []
 
     if suffix == ".pdf":
-        # Convertir PDF a imágenes (300 DPI para buena calidad)
-        pil_images = convert_from_path(str(file_path), dpi=300)
-        for i, img in enumerate(pil_images):
-            b64 = _pil_to_base64(img)
-            images_b64.append({"type": "image", "data": b64, "media_type": "image/png"})
+        doc = fitz.open(str(file_path))
+        for i in range(len(doc)):
+            page = doc[i]
+            pix = page.get_pixmap(matrix=fitz.Matrix(300 / 72, 300 / 72))
+            b64 = base64.b64encode(pix.tobytes("png")).decode()
+            images_b64.append(f"data:image/png;base64,{b64}")
             logger.debug("pagina_convertida", pagina=i + 1)
+        doc.close()
     elif suffix in (".jpg", ".jpeg"):
         b64 = base64.b64encode(file_path.read_bytes()).decode()
-        images_b64.append({"type": "image", "data": b64, "media_type": "image/jpeg"})
+        images_b64.append(f"data:image/jpeg;base64,{b64}")
     elif suffix == ".png":
         b64 = base64.b64encode(file_path.read_bytes()).decode()
-        images_b64.append({"type": "image", "data": b64, "media_type": "image/png"})
+        images_b64.append(f"data:image/png;base64,{b64}")
     else:
         raise ValueError(f"Formato no soportado: {suffix}")
 
     return images_b64
 
 
-def _pil_to_base64(img: Image.Image) -> str:
-    """Convierte una imagen PIL a base64 PNG."""
-    buffer = io.BytesIO()
-    img.save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode()
-
-
-def _build_message_content(images_b64: list[dict]) -> list[dict]:
-    """Construye el contenido del mensaje para OpenAI con imágenes + prompt."""
+def _build_message_content(images_b64: list[str]) -> list[dict]:
+    """Construye el contenido del mensaje con imágenes + prompt."""
     content = []
-
-    # Agregar cada imagen como image_url con base64
-    for img in images_b64:
+    for data_url in images_b64:
         content.append({
             "type": "image_url",
-            "image_url": {
-                "url": f"data:{img['media_type']};base64,{img['data']}",
-            },
+            "image_url": {"url": data_url},
         })
-
-    # Agregar el prompt de extracción
-    content.append({
-        "type": "text",
-        "text": EXTRACTION_PROMPT,
-    })
-
+    content.append({"type": "text", "text": EXTRACTION_PROMPT})
     return content
 
 
-def _call_openai(content: list[dict], settings) -> dict:
-    """Llama a la API de OpenAI (GitHub Models) con visión."""
-    api_key = settings.github_token
-    if not api_key:
-        raise ValueError(
-            "GITHUB_TOKEN no configurado. "
-            "Agrégalo en el archivo .env"
-        )
+def _call_azure_openai(content: list[dict]) -> dict:
+    """Llama a Azure OpenAI con el SDK oficial."""
+    settings = get_settings()
+    client = _get_client()
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
+    logger.info("azure_openai_llamada", model=settings.ai_model)
 
-    payload = {
-        "model": settings.ai_model,
-        "max_tokens": 4096,
-        "messages": [
-            {
-                "role": "user",
-                "content": content,
-            }
-        ],
-    }
+    response = client.chat.completions.create(
+        model=settings.ai_model,
+        max_tokens=4096,
+        messages=[{"role": "user", "content": content}],
+    )
 
-    logger.info("openai_vision_llamada", model=settings.ai_model)
-
-    with httpx.Client(timeout=120.0) as client:
-        response = client.post(
-            f"{settings.ai_base_url}/chat/completions",
-            headers=headers,
-            json=payload,
-        )
-        response.raise_for_status()
-
-    result = response.json()
-    text_response = result["choices"][0]["message"]["content"]
+    text_response = response.choices[0].message.content
 
     logger.info(
-        "openai_vision_respuesta",
-        tokens_input=result.get("usage", {}).get("prompt_tokens"),
-        tokens_output=result.get("usage", {}).get("completion_tokens"),
+        "azure_openai_respuesta",
+        tokens_input=response.usage.prompt_tokens if response.usage else None,
+        tokens_output=response.usage.completion_tokens if response.usage else None,
     )
 
     # Limpiar respuesta (a veces viene con ```json ... ```)

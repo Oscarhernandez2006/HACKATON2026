@@ -1,7 +1,6 @@
-"""Servicio OCR unificado — orquesta descarga y extracción con IA o Tesseract.
+"""Servicio OCR unificado — orquesta descarga y extracción con Tesseract.
 
-Motor por defecto: IA (GPT-4o Vision vía GitHub Models) → envía la imagen directo al modelo.
-Fallback: Tesseract + regex (si no hay GITHUB_TOKEN configurado).
+Convierte PDF a imágenes → Tesseract OCR → regex para extraer campos estructurados.
 """
 
 from __future__ import annotations

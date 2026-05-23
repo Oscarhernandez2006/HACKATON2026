@@ -23,28 +23,45 @@ CONFIDENCE_THRESHOLD = 0.7
 
 _PATTERNS = {
     "numero_incapacidad": [
-        r"(?:N[°ºo]?\s*(?:de\s+)?(?:incapacidad|radicado|certificado))\s*[:\-]?\s*([A-Z0-9\-]+)",
-        r"(?:incapacidad|certificado)\s*(?:N[°ºo]?)?\s*[:\-]?\s*([A-Z0-9\-]{4,})",
+        r"(?:N[°ºo]|Nº)\s*\.?\s*(\d{3,})",
+        r"(?:incapacidad|radicado|certificado)\s*(?:N[°ºo]?)?\s*[:\-.]?\s*(\d{3,})",
+        r"No\.\s*(\d{4,})",
         r"(?:RAD|INC|CERT)\s*[\-:]?\s*(\d{4,})",
     ],
     "diagnostico_codigo": [
-        r"(?:CIE[\-\s]?10|C[oó]digo\s+diagn[oó]stico|Dx)\s*[:\-]?\s*([A-Z]\d{2,4}(?:\.\d+)?)",
-        r"\b([A-Z]\d{2}(?:\.\d{1,2})?)\b",
+        r"(?:CIE[\-\s]?10|C[oó]digo\s+[Dd]iagn[oó]stico\s+[Pp]rincipal|Dx)\s*[:\-]?\s*([A-Z]\d{2,4}(?:\.\d+)?)",
+        r"(?:incapacidad|diagnostico)[:\s]*([A-Z]\d{2,4})\b",
+        r"\b([A-Z]\d{3})\s+[\-–]\s+[A-ZÁÉÍÓÚÑ]",
+        r"\b([A-Z]\d{3})\s+[A-ZÁÉÍÓÚÑ]{2,}",
+    ],
+    "diagnostico_descripcion": [
+        r"[A-Z]\d{3}\s*[\-–]?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s,]{5,60})",
     ],
     "eps_detectada": [
-        r"(?:EPS|Entidad|Aseguradora)\s*[:\-]?\s*(SANITAS|SURA|COMPENSAR|NUEVA\s*EPS|SALUD\s*TOTAL|COOSALUD|FAMISANAR|MUTUAL\s*SER)",
-        r"\b(SANITAS|SURA|COMPENSAR|NUEVA\s*EPS|SALUD\s*TOTAL|COOSALUD|FAMISANAR|MUTUAL\s*SER)\b",
+        r"(?:EPS|Entidad|Aseguradora|Administradora)\s*[:\-]?\s*(?:EPS\d*\s+)?(?:EPS\s+Y\s+MEDICINA\s+PREPAGADA\s+)?(SANITAS|SURA(?:MERICANA)?|COMPENSAR|NUEVA\s*EPS|SALUD\s*TOTAL|COOSALUD|FAMISANAR|MUTUAL\s*SER)",
+        r"(?:EPS\s+Y\s+MEDICINA\s+PREPAGADA\s+)(SURAMERICANA)",
+        r"\b(SANITAS|COMPENSAR|COOSALUD|FAMISANAR)\b",
+        r"\b(SALUD\s+TOTAL)\s+EPS\b",
+        r"\b(SURAMERICANA)\b",
+        r"\b(NUEVA\s+EPS)\b",
+        r"\b(MUTUAL\s+SER)\b",
     ],
     "medico_nombre": [
-        r"(?:M[eé]dico|Doctor|Dra?\.?|Profesional)\s*(?:tratante)?\s*[:\-]?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,40})",
+        r"(?:DR\.?|DRA\.?)\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{5,40}?)(?:\s*[\-–]\s*|\s+CC\b|\s+M[eé]dico)",
+        r"M[eé]dico\s*[:\-]?\s*\n?\s*(?:\d+\s*\n?\s*)?([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,40})",
         r"(?:Firma|Atendido\s+por)\s*[:\-]?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,40})",
+        r"T\.\s*Profesional\s*\n?\s*\d+\s*\n?\s*(?:Especialidad\s*\n?\s*[A-Z\s]+\s*\n?\s*)?.*?([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,30})",
     ],
     "registro_medico": [
-        r"(?:Registro\s+m[eé]dico|Reg\.?\s*Med\.?|R\.?M\.?|Tarjeta\s+profesional)\s*[:\-]?\s*(\d{4,10})",
-        r"(?:TP|T\.P\.)\s*[:\-]?\s*(\d{4,10})",
+        r"(?:Registro\s+m[eé]dico|Reg\.?\s*Med\.?|R\.?M\.?|T\.?\s*Profesional|TP|T\.P\.)\s*[:\-]?\s*(\d{4,15})",
+        r"RM\.\s*(\d{4,15})",
+        r"CC\s+(\d{6,15})\s+[\-–]\s+RM",
     ],
     "ips": [
-        r"(?:IPS|Instituci[oó]n|Centro\s+m[eé]dico|Cl[ií]nica|Hospital)\s*[:\-]?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\.]{3,50})",
+        r"(CL[IÍ]NICA\s+[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{2,40})",
+        r"(HOSPITAL\s+[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{2,40})",
+        r"(COOPERATIVA\s+[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{2,40}(?:\s+IPS)?)",
+        r"Centro\s+m[eé]dico\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,40})",
     ],
 }
 
@@ -55,18 +72,25 @@ _DATE_PATTERNS = [
     r"(\d{4})[/\-\.](\d{1,2})[/\-\.](\d{1,2})",
 ]
 
+# Meses en español para formatos como "21/abril/2026"
+_MESES = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+    "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+    "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+}
+
 _DATE_LABELS = {
-    "fecha_expedicion": [
-        r"(?:fecha\s+(?:de\s+)?expedici[oó]n|expedido\s+el|fecha\s+documento)",
-    ],
-    "fecha_atencion": [
-        r"(?:fecha\s+(?:de\s+)?atenci[oó]n|fecha\s+consulta|atendido\s+el)",
-    ],
     "fecha_inicio": [
-        r"(?:fecha\s+(?:de\s+)?inicio|inicia?\s+el|desde\s+el|a\s+partir\s+del)",
+        r"(?:fecha\s+(?:de\s+)?inicio|[Dd]esde|[Ii]nicia?\s+el|[Aa]\s+partir\s+del|[Ff]echa\s+[Ii]nicial)",
     ],
     "fecha_fin": [
-        r"(?:fecha\s+(?:de\s+)?(?:fin|terminaci[oó]n|finalizaci[oó]n)|hasta\s+el|termina\s+el)",
+        r"(?:fecha\s+(?:de\s+)?(?:fin|final|terminaci[oó]n|finalizaci[oó]n)|[Hh]asta|[Tt]ermina\s+el|[Ff]echa\s+[Ff]inal)",
+    ],
+    "fecha_expedicion": [
+        r"(?:fecha\s+(?:de\s+)?expedici[oó]n|[Ee]xpedido\s+el|[Ff]echa\s+[Dd]ocumento|[Ii]mpreso|[Ff]echa\s+[Aa]ctual)",
+    ],
+    "fecha_atencion": [
+        r"(?:fecha\s+(?:de\s+)?atenci[oó]n|[Ff]echa\s+consulta|[Aa]tendido\s+el)",
     ],
 }
 
@@ -197,7 +221,20 @@ def _extract_date_near_label(
 ) -> tuple[str | None, float]:
     """Busca una fecha cerca de una etiqueta de contexto."""
     for label_pattern in label_patterns:
-        # Buscar etiqueta + fecha en la misma línea o cercana
+        # Buscar etiqueta seguida de fecha con mes en español (21/abril/2026)
+        spanish_date = label_pattern + r"[:\s\-]*(\d{1,2})[/\-]([a-záéíóú]+)[/\-](\d{4})"
+        match = re.search(spanish_date, text, re.IGNORECASE)
+        if match:
+            groups = match.groups()
+            day, month_name, year = groups[-3], groups[-2].lower(), groups[-1]
+            if month_name in _MESES:
+                try:
+                    d = date(int(year), _MESES[month_name], int(day))
+                    return d.isoformat(), 0.95
+                except ValueError:
+                    pass
+
+        # Buscar etiqueta + fecha numérica en la misma línea
         combined = label_pattern + r"[:\s\-]*" + _DATE_PATTERNS[0]
         match = re.search(combined, text, re.IGNORECASE)
         if match:
@@ -205,14 +242,6 @@ def _extract_date_near_label(
             date_str = _parse_date_groups(groups[-3:])
             if date_str:
                 return date_str, 0.9
-
-    # Fallback: buscar cualquier fecha en el texto
-    for pattern in _DATE_PATTERNS:
-        matches = re.findall(pattern, text)
-        if matches:
-            date_str = _parse_date_groups(matches[0])
-            if date_str:
-                return date_str, 0.5
 
     return None, 0.0
 

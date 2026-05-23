@@ -1,0 +1,97 @@
+{
+  "JOSE RIVERA INC #1.pdf": {
+    "extracted_data": {
+      "numero_incapacidad": "6643872",
+      "tipo": "ENFERMEDAD_GENERAL",
+      "origen": "COMUN",
+      "fecha_inicio": "2026-05-01",
+      "fecha_fin": "2026-05-01",
+      "dias": 30,
+      "diagnostico_codigo": "S821",
+      "eps_detectada": "SANITAS",
+      "medico_nombre": "ANDRES FELIPE TIJO",
+      "registro_medico": "1019093117",
+      "ips": "soacha NIT",
+      "es_prorroga": false
+    },
+    "confidence": {
+      "numero_incapacidad": 1.0,
+      "diagnostico_codigo": 0.85,
+      "diagnostico_descripcion": 1.0,
+      "eps_detectada": 1.0,
+      "medico_nombre": 1.0,
+      "registro_medico": 1.0,
+      "ips": 0.55,
+      "fecha_inicio": 0.9,
+      "fecha_fin": 0.9,
+      "tipo": 0.9,
+      "dias": 0.85
+    },
+    "needs_review": [
+      "ips"
+    ]
+  },
+  "LUIS CARLOS GARCIA URQUIJO #0.pdf": {
+    "extracted_data": {
+      "numero_incapacidad": "1118834975",
+      "tipo": "ENFERMEDAD_GENERAL",
+      "origen": "COMUN",
+      "fecha_inicio": "2026-05-01",
+      "fecha_fin": "2026-05-02",
+      "diagnostico_codigo": "H819",
+      "eps_detectada": "SURAMERICANA",
+      "medico_nombre": "del Paciente Imprime",
+      "ips": "COOPERATIVA ANTIOQUEÑA DE SALUD COOPSANA IPS Direcció",
+      "es_prorroga": false
+    },
+    "confidence": {
+      "numero_incapacidad": 1.0,
+      "diagnostico_codigo": 0.55,
+      "diagnostico_descripcion": 1.0,
+      "eps_detectada": 0.85,
+      "medico_nombre": 0.7,
+      "registro_medico": 0.0,
+      "ips": 0.7,
+      "fecha_inicio": 0.9,
+      "fecha_fin": 0.9,
+      "tipo": 0.9
+    },
+    "needs_review": [
+      "diagnostico_codigo"
+    ]
+  },
+  "MELANYS JIMENEZ #1.pdf": {
+    "extracted_data": {
+      "numero_incapacidad": "20274",
+      "tipo": "ENFERMEDAD_GENERAL",
+      "origen": "COMUN",
+      "fecha_expedicion": "2026-04-21",
+      "fecha_inicio": "2026-04-21",
+      "fecha_fin": "2026-04-22",
+      "dias": 2,
+      "diagnostico_codigo": "G432",
+      "eps_detectada": "SALUD_TOTAL",
+      "medico_nombre": "JAVIER DAVID GUZMAN BERNAL Información Pa",
+      "registro_medico": "1143457721",
+      "ips": "CLINICA SAN IGNACIO Telefono",
+      "es_prorroga": true
+    },
+    "confidence": {
+      "numero_incapacidad": 1.0,
+      "diagnostico_codigo": 1.0,
+      "diagnostico_descripcion": 1.0,
+      "eps_detectada": 1.0,
+      "medico_nombre": 0.85,
+      "registro_medico": 1.0,
+      "ips": 1.0,
+      "fecha_inicio": 0.95,
+      "fecha_fin": 0.95,
+      "fecha_expedicion": 0.95,
+      "tipo": 0.5,
+      "dias": 0.85
+    },
+    "needs_review": [
+      "tipo"
+    ]
+  }
+}
