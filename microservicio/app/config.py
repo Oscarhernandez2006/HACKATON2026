@@ -23,8 +23,10 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
-    # ── OCR ──
-    ocr_engine: str = "tesseract"  # tesseract | textract
+    # ── OCR / IA ──
+    ocr_engine: str = "ai"  # ai | tesseract | textract
+    anthropic_api_key: str = ""
+    ai_model: str = "claude-sonnet-4-20250514"
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
     aws_region: str = "us-east-1"
