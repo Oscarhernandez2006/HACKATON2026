@@ -1,0 +1,42 @@
+services:
+  # ── API FastAPI ──
+  api:
+    build: .
+    container_name: pdf-radicado-api
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      - redis
+    volumes:
+      - ./app:/app/app
+      - temp_data:/tmp/pdf-a-radicado
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # ── Celery Worker ──
+  worker:
+    build: .
+    container_name: pdf-radicado-worker
+    env_file: .env
+    depends_on:
+      - redis
+    volumes:
+      - ./app:/app/app
+      - temp_data:/tmp/pdf-a-radicado
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=4
+    restart: unless-stopped
+
+  # ── Redis ──
+  redis:
+    image: redis:7-alpine
+    container_name: pdf-radicado-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  temp_data:

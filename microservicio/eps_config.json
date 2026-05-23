@@ -1,0 +1,74 @@
+[
+  {
+    "eps_code": "COMPENSAR",
+    "name": "Compensar",
+    "portal_url": "https://corporativo.compensar.com/salud/transacciones",
+    "max_file_size_kb": 900,
+    "adapter_key": "compensar",
+    "status": "active",
+    "notes": "Límite más restrictivo. Validar tamaño antes de intentar radicación."
+  },
+  {
+    "eps_code": "SURA",
+    "name": "EPS Sura",
+    "portal_url": "https://epsapps.suramericana.com",
+    "max_file_size_kb": 4096,
+    "adapter_key": "sura",
+    "status": "active",
+    "notes": null
+  },
+  {
+    "eps_code": "COOSALUD",
+    "name": "Coosalud",
+    "portal_url": "https://portalempleador.coosalud.com/",
+    "max_file_size_kb": 1126,
+    "adapter_key": "coosalud",
+    "status": "active",
+    "notes": null
+  },
+  {
+    "eps_code": "SANITAS",
+    "name": "EPS Sanitas",
+    "portal_url": "https://www.epssanitas.com/usuarios/web/nuevo-portal-eps/incapacidades-y-licencias1",
+    "max_file_size_kb": 12288,
+    "adapter_key": "sanitas",
+    "status": "active",
+    "notes": "Portal con límite más alto. Recomendado para pruebas iniciales."
+  },
+  {
+    "eps_code": "NUEVA_EPS",
+    "name": "Nueva EPS",
+    "portal_url": "https://solucionjb.nuevaeps.com.co/consultas-portal-w/",
+    "max_file_size_kb": 10240,
+    "adapter_key": "nueva_eps",
+    "status": "active",
+    "notes": null
+  },
+  {
+    "eps_code": "SALUD_TOTAL",
+    "name": "Salud Total",
+    "portal_url": "https://transaccional.saludtotal.com.co/OficinaVirtual/",
+    "max_file_size_kb": 4096,
+    "adapter_key": "salud_total",
+    "status": "active",
+    "notes": null
+  },
+  {
+    "eps_code": "FAMISANAR",
+    "name": "Famisanar",
+    "portal_url": "https://www.famisanar.com.co/empleadores/empresas/prestaciones-economicas",
+    "max_file_size_kb": 5120,
+    "adapter_key": "famisanar",
+    "status": "active",
+    "notes": null
+  },
+  {
+    "eps_code": "MUTUAL_SER",
+    "name": "Mutual Ser",
+    "portal_url": "https://portalzonaser.mutualser.com/",
+    "max_file_size_kb": 1024,
+    "adapter_key": "mutual_ser",
+    "status": "active",
+    "notes": null
+  }
+]
