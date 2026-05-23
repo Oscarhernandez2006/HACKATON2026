@@ -1,6 +1,6 @@
-"""Extractor de documentos con IA (Claude Vision).
+"""Extractor de documentos con IA (GPT-4o Vision vía GitHub Models).
 
-Envía la imagen/PDF del certificado de incapacidad directamente a Claude Vision
+Envía la imagen/PDF del certificado de incapacidad a GPT-4o Vision
 y recibe los datos estructurados con confianza por campo.
 
 Ventajas sobre OCR+regex:
@@ -27,7 +27,7 @@ from app.schemas import OcrExtractedData, OcrResult
 
 logger = get_logger(__name__)
 
-# Prompt de extracción — le dice a Claude exactamente qué extraer
+# Prompt de extracción — le dice al modelo exactamente qué extraer
 EXTRACTION_PROMPT = """Eres un experto en documentos médicos colombianos de incapacidades laborales.
 
 Analiza la imagen del certificado de incapacidad y extrae los siguientes datos en formato JSON.
@@ -68,7 +68,7 @@ Responde SOLO con JSON válido, sin markdown, sin explicaciones. Estructura:
 
 
 def extract_with_ai(file_path: Path) -> OcrResult:
-    """Extrae datos estructurados de un documento usando Claude Vision.
+    """Extrae datos estructurados de un documento usando GPT-4o Vision.
 
     Args:
         file_path: Ruta al archivo PDF, JPG o PNG.
@@ -82,18 +82,18 @@ def extract_with_ai(file_path: Path) -> OcrResult:
     images_b64 = _prepare_images(file_path)
     logger.info("imagenes_preparadas", total=len(images_b64), archivo=file_path.name)
 
-    # Construir mensaje para Claude
+    # Construir mensaje para OpenAI
     content = _build_message_content(images_b64)
 
-    # Llamar a Claude Vision
-    response_data = _call_claude(content, settings)
+    # Llamar a OpenAI Vision (GitHub Models)
+    response_data = _call_openai(content, settings)
 
     # Parsear respuesta
     return _parse_response(response_data)
 
 
 def _prepare_images(file_path: Path) -> list[dict]:
-    """Convierte el archivo a imágenes base64 para enviar a Claude."""
+    """Convierte el archivo a imágenes base64 para enviar al modelo."""
     suffix = file_path.suffix.lower()
     images_b64 = []
 
@@ -124,17 +124,15 @@ def _pil_to_base64(img: Image.Image) -> str:
 
 
 def _build_message_content(images_b64: list[dict]) -> list[dict]:
-    """Construye el contenido del mensaje para Claude con imágenes + prompt."""
+    """Construye el contenido del mensaje para OpenAI con imágenes + prompt."""
     content = []
 
-    # Agregar cada imagen
+    # Agregar cada imagen como image_url con base64
     for img in images_b64:
         content.append({
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": img["media_type"],
-                "data": img["data"],
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:{img['media_type']};base64,{img['data']}",
             },
         })
 
@@ -147,19 +145,18 @@ def _build_message_content(images_b64: list[dict]) -> list[dict]:
     return content
 
 
-def _call_claude(content: list[dict], settings) -> dict:
-    """Llama a la API de Claude Vision."""
-    api_key = settings.anthropic_api_key
+def _call_openai(content: list[dict], settings) -> dict:
+    """Llama a la API de OpenAI (GitHub Models) con visión."""
+    api_key = settings.github_token
     if not api_key:
         raise ValueError(
-            "ANTHROPIC_API_KEY no configurada. "
-            "Agrégala en el archivo .env"
+            "GITHUB_TOKEN no configurado. "
+            "Agrégalo en el archivo .env"
         )
 
     headers = {
-        "x-api-key": api_key,
-        "content-type": "application/json",
-        "anthropic-version": "2023-06-01",
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
 
     payload = {
@@ -173,31 +170,36 @@ def _call_claude(content: list[dict], settings) -> dict:
         ],
     }
 
-    logger.info("claude_vision_llamada", model=settings.ai_model)
+    logger.info("openai_vision_llamada", model=settings.ai_model)
 
     with httpx.Client(timeout=120.0) as client:
         response = client.post(
-            "https://api.anthropic.com/v1/messages",
+            f"{settings.ai_base_url}/chat/completions",
             headers=headers,
             json=payload,
         )
         response.raise_for_status()
 
     result = response.json()
-    text_response = result["content"][0]["text"]
+    text_response = result["choices"][0]["message"]["content"]
 
     logger.info(
-        "claude_vision_respuesta",
-        tokens_input=result.get("usage", {}).get("input_tokens"),
-        tokens_output=result.get("usage", {}).get("output_tokens"),
+        "openai_vision_respuesta",
+        tokens_input=result.get("usage", {}).get("prompt_tokens"),
+        tokens_output=result.get("usage", {}).get("completion_tokens"),
     )
 
-    # Parsear JSON de la respuesta
-    return json.loads(text_response)
+    # Limpiar respuesta (a veces viene con ```json ... ```)
+    text_clean = text_response.strip()
+    if text_clean.startswith("```"):
+        text_clean = text_clean.split("\n", 1)[1]
+        text_clean = text_clean.rsplit("```", 1)[0]
+
+    return json.loads(text_clean)
 
 
 def _parse_response(data: dict) -> OcrResult:
-    """Parsea la respuesta de Claude a nuestro schema."""
+    """Parsea la respuesta del modelo a nuestro schema."""
     extracted = data.get("extracted_data", {})
     confidence = data.get("confidence", {})
     needs_review = data.get("needs_review", [])
@@ -207,7 +209,7 @@ def _parse_response(data: dict) -> OcrResult:
     if "eps_detectada" in extracted and extracted["eps_detectada"]:
         extracted["eps_detectada"] = _normalize_eps(extracted["eps_detectada"])
 
-    # Construir OcrExtractedData (ignora campos que Claude no reconoció)
+    # Construir OcrExtractedData (ignora campos que el modelo no reconoció)
     valid_fields = OcrExtractedData.model_fields.keys()
     clean_data = {k: v for k, v in extracted.items() if k in valid_fields and v is not None}
 

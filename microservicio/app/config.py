@@ -25,8 +25,9 @@ class Settings(BaseSettings):
 
     # ── OCR / IA ──
     ocr_engine: str = "ai"  # ai | tesseract | textract
-    anthropic_api_key: str = ""
-    ai_model: str = "claude-sonnet-4-20250514"
+    github_token: str = ""
+    ai_model: str = "gpt-chat-latest"
+    ai_base_url: str = "https://models.inference.ai.azure.com"
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
     aws_region: str = "us-east-1"

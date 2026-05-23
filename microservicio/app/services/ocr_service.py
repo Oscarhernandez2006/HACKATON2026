@@ -1,7 +1,7 @@
 """Servicio OCR unificado — orquesta descarga y extracción con IA o Tesseract.
 
-Motor por defecto: IA (Claude Vision) → envía la imagen directo al modelo.
-Fallback: Tesseract + regex (si no hay API key de Anthropic configurada).
+Motor por defecto: IA (GPT-4o Vision vía GitHub Models) → envía la imagen directo al modelo.
+Fallback: Tesseract + regex (si no hay GITHUB_TOKEN configurado).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 def process_ocr(adjuntos: list[dict], job_uuid: str) -> OcrResult:
     """Procesa los adjuntos de un job: descarga → extracción con IA o OCR.
 
-    Si OCR_ENGINE=ai → usa Claude Vision (recomendado).
+    Si OCR_ENGINE=ai → usa GPT-4o Vision (recomendado).
     Si OCR_ENGINE=tesseract → usa Tesseract + regex.
     Si OCR_ENGINE=textract → usa AWS Textract + regex.
 
@@ -44,10 +44,10 @@ def process_ocr(adjuntos: list[dict], job_uuid: str) -> OcrResult:
 
 
 def _extract_with_ai(file_paths: list[Path]) -> OcrResult:
-    """Extracción con IA (Claude Vision) — envía imagen directo al modelo."""
+    """Extracción con IA (GPT-4o Vision) — envía imagen directo al modelo."""
     from app.services.ai_extractor import extract_with_ai
 
-    logger.info("extraccion_ia_iniciada", motor="claude_vision", archivos=len(file_paths))
+    logger.info("extraccion_ia_iniciada", motor="gpt4o_vision", archivos=len(file_paths))
 
     # Procesar el primer documento (principal)
     # Si hay múltiples, se puede iterar o combinar
