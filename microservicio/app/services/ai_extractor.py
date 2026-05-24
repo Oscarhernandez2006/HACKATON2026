@@ -1,7 +1,7 @@
-"""Extractor de documentos con IA (Azure OpenAI — GPT-4o Vision).
+"""Extractor de documentos con IA — GitHub Models (GPT-4o-mini Vision).
 
-Envía la imagen/PDF del certificado de incapacidad a Azure OpenAI
-y recibe los datos estructurados con confianza por campo.
+Envía la imagen renderizada del PDF a GitHub Models (gratis) y
+recibe los datos estructurados con confianza por campo.
 
 Ventajas sobre OCR+regex:
 - Entiende contexto, tablas, sellos y texto manuscrito
@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 
 import fitz  # PyMuPDF — renderiza PDF sin poppler
-from openai import AzureOpenAI
+from openai import OpenAI
 
 from app.config import get_settings
 from app.logger import get_logger
@@ -42,6 +42,9 @@ CAMPOS A EXTRAER:
 - diagnostico_codigo: Código CIE-10 del diagnóstico (ej: M545, J060)
 - diagnostico_descripcion: Descripción del diagnóstico
 - eps_detectada: Nombre de la EPS (SANITAS, SURA, COMPENSAR, NUEVA_EPS, SALUD_TOTAL, COOSALUD, FAMISANAR, MUTUAL_SER)
+- paciente_nombre: Nombre completo del paciente / trabajador / afiliado
+- paciente_tipo_documento: Tipo de documento del paciente (CC, TI, CE, PA, RC)
+- paciente_numero_documento: Número de documento del paciente (solo dígitos, sin puntos ni espacios)
 - medico_nombre: Nombre completo del médico tratante
 - registro_medico: Número de registro médico o tarjeta profesional
 - ips: Nombre de la IPS o institución
@@ -65,22 +68,21 @@ Responde SOLO con JSON válido, sin markdown, sin explicaciones. Estructura:
 }"""
 
 
-def _get_client() -> AzureOpenAI:
-    """Crea el cliente AzureOpenAI con las credenciales de .env."""
+def _get_client() -> OpenAI:
+    """Crea el cliente OpenAI apuntando a GitHub Models."""
     settings = get_settings()
-    if not settings.azure_api_key:
+    if not settings.github_token:
         raise ValueError(
-            "AZURE_API_KEY no configurado. Agrégalo en el archivo .env"
+            "GITHUB_TOKEN no configurado. Agrégalo en el archivo .env"
         )
-    return AzureOpenAI(
-        api_version=settings.ai_api_version,
-        azure_endpoint=settings.ai_base_url,
-        api_key=settings.azure_api_key,
+    return OpenAI(
+        base_url=settings.github_models_endpoint,
+        api_key=settings.github_token,
     )
 
 
 def extract_with_ai(file_path: Path) -> OcrResult:
-    """Extrae datos estructurados de un documento usando Azure OpenAI Vision.
+    """Extrae datos estructurados de un documento usando GitHub Models Vision.
 
     Args:
         file_path: Ruta al archivo PDF, JPG o PNG.
@@ -95,8 +97,8 @@ def extract_with_ai(file_path: Path) -> OcrResult:
     # Construir contenido del mensaje
     content = _build_message_content(images_b64)
 
-    # Llamar a Azure OpenAI
-    response_data = _call_azure_openai(content)
+    # Llamar a GitHub Models
+    response_data = _call_github_models(content)
 
     # Parsear respuesta
     return _parse_response(response_data)
@@ -111,7 +113,7 @@ def _prepare_images(file_path: Path) -> list[str]:
         doc = fitz.open(str(file_path))
         for i in range(len(doc)):
             page = doc[i]
-            pix = page.get_pixmap(matrix=fitz.Matrix(300 / 72, 300 / 72))
+            pix = page.get_pixmap(matrix=fitz.Matrix(150 / 72, 150 / 72))
             b64 = base64.b64encode(pix.tobytes("png")).decode()
             images_b64.append(f"data:image/png;base64,{b64}")
             logger.debug("pagina_convertida", pagina=i + 1)
@@ -140,23 +142,25 @@ def _build_message_content(images_b64: list[str]) -> list[dict]:
     return content
 
 
-def _call_azure_openai(content: list[dict]) -> dict:
-    """Llama a Azure OpenAI con el SDK oficial."""
+def _call_github_models(content: list[dict]) -> dict:
+    """Llama a GitHub Models con el SDK OpenAI."""
     settings = get_settings()
     client = _get_client()
 
-    logger.info("azure_openai_llamada", model=settings.ai_model)
+    logger.info("github_models_llamada", model=settings.github_models_model)
 
     response = client.chat.completions.create(
-        model=settings.ai_model,
+        model=settings.github_models_model,
         max_tokens=4096,
+        temperature=0.1,
+        response_format={"type": "json_object"},
         messages=[{"role": "user", "content": content}],
     )
 
     text_response = response.choices[0].message.content
 
     logger.info(
-        "azure_openai_respuesta",
+        "github_models_respuesta",
         tokens_input=response.usage.prompt_tokens if response.usage else None,
         tokens_output=response.usage.completion_tokens if response.usage else None,
     )

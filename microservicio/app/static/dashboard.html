@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Hackatón 2026 · De PDF a Radicado · Panel de Demostración</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-card: #131a36;
+    --bg-elev: #1a2347;
+    --border: #283264;
+    --text: #e6ebff;
+    --text-dim: #98a0c8;
+    --accent: #7c5cff;
+    --accent-2: #29d3a7;
+    --warn: #ffb454;
+    --err: #ff647c;
+    --ok: #29d3a7;
+    --code-bg: #0a0f24;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0b1020 0%, #131a36 100%);
+    color: var(--text); min-height: 100vh;
+  }
+  header {
+    padding: 28px 40px; border-bottom: 1px solid var(--border);
+    background: rgba(11,16,32,0.85); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  header h1 { margin: 0 0 4px 0; font-size: 22px; font-weight: 600; letter-spacing: 0.2px; }
+  header .sub { color: var(--text-dim); font-size: 13px; }
+  header .badges { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 999px; font-size: 12px;
+    color: var(--text-dim);
+  }
+  .badge strong { color: var(--text); margin-right: 4px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 28px 40px 60px; }
+  .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .card h2 {
+    margin: 0; font-size: 16px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card .tag {
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    background: var(--bg-elev); color: var(--text-dim);
+    letter-spacing: 0.6px; text-transform: uppercase;
+  }
+  .card .tag.ok { background: rgba(41,211,167,0.15); color: var(--ok); }
+  .card .tag.warn { background: rgba(255,180,84,0.15); color: var(--warn); }
+  .card .tag.err { background: rgba(255,100,124,0.15); color: var(--err); }
+  .card p.desc { margin: 0; color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input, select, button {
+    font-family: inherit; font-size: 13px;
+    border-radius: 8px; padding: 9px 12px; border: 1px solid var(--border);
+    background: var(--bg-elev); color: var(--text); outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type=file] { padding: 7px; }
+  button {
+    background: var(--accent); border: none; cursor: pointer;
+    font-weight: 600; transition: transform 0.1s, opacity 0.2s;
+  }
+  button:hover:not(:disabled) { transform: translateY(-1px); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.ghost { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); }
+  .out {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 12px; line-height: 1.5; color: #b9c6ff;
+    max-height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-word;
+  }
+  .out .k { color: #82aaff; }
+  .out .s { color: #c3e88d; }
+  .out .n { color: #f78c6c; }
+  .out .b { color: #c792ea; }
+  .status-line {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 8px; font-size: 13px;
+    background: var(--bg-elev); border-left: 3px solid var(--text-dim);
+  }
+  .status-line.ok { border-color: var(--ok); }
+  .status-line.warn { border-color: var(--warn); }
+  .status-line.err { border-color: var(--err); }
+  .status-line .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim);
+  }
+  .status-line.ok .dot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .status-line.warn .dot { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  .status-line.err .dot { background: var(--err); box-shadow: 0 0 8px var(--err); }
+  .shots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .shots a {
+    display: block; border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; background: var(--bg-elev); width: 110px; height: 80px;
+    text-decoration: none; color: var(--text-dim); font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s;
+  }
+  .shots a:hover { border-color: var(--accent); }
+  .shots img { width: 100%; height: 100%; object-fit: cover; }
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+    padding: 40px;
+  }
+  .modal.open { display: flex; }
+  .modal img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+  .modal .close {
+    position: absolute; top: 20px; right: 30px;
+    background: var(--bg-elev); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  }
+  details summary { cursor: pointer; color: var(--text-dim); font-size: 12px; }
+  details summary:hover { color: var(--text); }
+  .meta { font-size: 11px; color: var(--text-dim); }
+  footer { text-align: center; padding: 20px; color: var(--text-dim); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>De PDF a Radicado · Panel de Demostración</h1>
+  <div class="sub">Microservicio Incapacidades.ai · Hackatón 2026 · Cliente reto: Colombia</div>
+  <div class="badges">
+    <span class="badge"><strong id="b-host"></strong>backend</span>
+    <span class="badge"><strong>IA Vision</strong>GitHub Models GPT-4o-mini</span>
+    <span class="badge"><strong>RETHUS</strong>MinSalud + OCR Tesseract</span>
+    <span class="badge"><strong>ADRES</strong>BDUA Playwright</span>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- ╔═════ IA OCR ═════╗ -->
+    <section class="card">
+      <h2>1. Extracción IA del PDF <span class="tag ok">Activo</span></h2>
+      <p class="desc">Sube un PDF de incapacidad. GitHub Models (GPT-4o-mini Vision) extrae los campos estructurados que Laravel recibiría en el callback.</p>
+      <div class="row">
+        <input type="file" id="ocr-file" accept="application/pdf" />
+        <button onclick="runOcr()">Procesar PDF</button>
+      </div>
+      <div id="ocr-status"></div>
+      <div id="ocr-out" class="out" style="display:none"></div>
+    </section>
+
+    <!-- ╔═════ RETHUS ═════╗ -->
+    <section class="card">
+      <h2>2. Validación RETHUS (MinSalud) <span class="tag ok">Activo</span></h2>
+      <p class="desc">Consulta el Registro Único Nacional del Talento Humano en Salud usando el registro médico extraído por la IA del PDF (paso 1). Resuelve el captcha con OCR Tesseract local.</p>
+      <div class="row" style="opacity:.6">
+        <input id="rh-reg" placeholder="Registro médico" readonly />
+        <input id="rh-nom" placeholder="Nombre del médico" readonly />
+        <button id="rh-btn" onclick="runRethus()" disabled>Validar médico</button>
+      </div>
+      <div id="rh-banner"></div>
+      <div id="rh-status"></div>
+      <div id="rh-out" class="out" style="display:none"></div>
+    </section>
+
+    <!-- ╔═════ ADRES ═════╗ -->
+    <section class="card">
+      <h2>3. Validación ADRES (BDUA) <span class="tag warn" id="ad-mode-tag">Manual asistido</span></h2>
+      <p class="desc">Toma automáticamente los datos extraídos del PDF (paso 1) y consulta la afiliación en ADRES. Compara la EPS del documento contra la EPS real registrada en el BDUA.</p>
+      <div id="ad-cdp-banner"></div>
+      <div class="row" style="opacity:.6">
+        <select id="ad-tipo" disabled>
+          <option value="">Tipo doc</option>
+          <option value="CC">CC</option>
+          <option value="TI">TI</option>
+          <option value="CE">CE</option>
+          <option value="PA">PA</option>
+          <option value="RC">RC</option>
+        </select>
+        <input id="ad-num" placeholder="Número documento" readonly />
+        <input id="ad-eps" placeholder="EPS del PDF" readonly />
+        <button id="ad-btn" onclick="runAdres()" disabled>Validar afiliación</button>
+      </div>
+      <div id="ad-status"></div>
+      <div id="ad-fallback"></div>
+      <div id="ad-shots" class="shots"></div>
+      <div id="ad-out" class="out" style="display:none"></div>
+    </section>
+
+    <!-- ╔═════ REPORTE FINAL ═════╗ -->
+    <section class="card" style="grid-column: 1 / -1;">
+      <h2>4. Reporte Final de Validación <span class="tag" id="rep-tag">Pendiente</span></h2>
+      <p class="desc">Consolida las tres validaciones (IA del PDF, RETHUS del médico y ADRES del paciente) y determina si la incapacidad está <strong>completa y verificada</strong> o si requiere revisión humana.</p>
+      <div class="row">
+        <button id="rep-btn" onclick="runReporte()" disabled>Generar reporte final</button>
+        <span class="meta" id="rep-hint">Procesa el PDF, valida el médico (RETHUS) y la afiliación (ADRES) primero.</span>
+      </div>
+      <div id="rep-body"></div>
+    </section>
+
+  </div>
+</main>
+
+<div class="modal" id="modal" onclick="this.classList.remove('open')">
+  <button class="close" onclick="document.getElementById('modal').classList.remove('open')">Cerrar</button>
+  <img id="modal-img" />
+</div>
+
+<footer>
+  Hackatón 2026 · v0.4 · Backend FastAPI + Playwright · Frontend single-file vanilla
+</footer>
+
+<script>
+const API = location.origin;
+document.getElementById('b-host').textContent = API;
+
+// Datos extraídos por la IA — se usan luego en RETHUS y ADRES para autocompletar
+let _lastOcr = null;
+let _lastRethus = null;
+let _lastAdres = null;
+
+async function checkCdp() {
+  const banner = document.getElementById('ad-cdp-banner');
+  const tag = document.getElementById('ad-mode-tag');
+  banner.innerHTML = '<div class="status-line"><div class="spinner"></div><span>Verificando Chrome CDP en puerto 9222…</span></div>';
+  try {
+    const r = await fetch(`${API}/demo/adres/cdp-status`);
+    const d = await r.json();
+    if (d.cdp_active) {
+      tag.textContent = 'Modo automático'; tag.className = 'tag ok';
+      banner.innerHTML = `<div class="status-line ok"><span class="dot"></span><span>✓ Chrome CDP activo en puerto ${d.port} — las consultas usarán tu sesión real (pasa el reCAPTCHA)</span></div>`;
+    } else {
+      tag.textContent = 'Manual asistido'; tag.className = 'tag warn';
+      banner.innerHTML = `
+        <div class="status-line warn" style="flex-direction:column;align-items:stretch;gap:10px">
+          <div><span class="dot"></span> <strong>Modo automático inactivo</strong> — Chrome CDP no detectado en puerto ${d.port}</div>
+          <div class="meta">Lanza Chrome con CDP automáticamente, calienta el captcha con una consulta manual y luego usa el dashboard.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="launchCdp()">🚀 Activar modo automático</button>
+            <button class="ghost" onclick="checkCdp()">Re-verificar</button>
+          </div>
+        </div>`;
+    }
+  } catch (e) {
+    banner.innerHTML = `<div class="status-line err"><span class="dot"></span><span>${e}</span></div>`;
+  }
+}
+// Auto-check al cargar
+window.addEventListener('load', () => setTimeout(checkCdp, 300));
+
+async function launchCdp() {
+  const banner = document.getElementById('ad-cdp-banner');
+  banner.innerHTML = '<div class="status-line"><div class="spinner"></div><span>Lanzando Chrome con CDP… (esto puede tardar ~5s)</span></div>';
+  try {
+    const r = await fetch(`${API}/demo/adres/cdp-launch`, { method: 'POST' });
+    const d = await r.json();
+    if (d.status === 'launched' || d.status === 'already_running') {
+      banner.innerHTML = `
+        <div class="status-line ok" style="flex-direction:column;align-items:stretch;gap:8px">
+          <div><span class="dot"></span> ✓ Chrome lanzado en puerto ${d.port}</div>
+          <div class="meta">⚠ <strong>Importante:</strong> en el Chrome que se abrió, espera a que cargue ADRES y haz UNA consulta manual de cualquier cédula (ej. <strong>1001911185</strong>) para resolver el reCAPTCHA. Cuando aparezca el resultado, vuelve aquí y prueba "Validar afiliación".</div>
+          <button class="ghost" onclick="checkCdp()">Verificar estado</button>
+        </div>`;
+      setTimeout(checkCdp, 2500);
+    } else {
+      banner.innerHTML = `<div class="status-line warn"><span class="dot"></span><span>${d.hint || JSON.stringify(d)}</span></div>`;
+    }
+  } catch (e) {
+    banner.innerHTML = `<div class="status-line err"><span class="dot"></span><span>${e}</span></div>`;
+  }
+}
+
+function fmt(obj) {
+  return JSON.stringify(obj, null, 2)
+    .replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>')
+    .replace(/: (true|false|null)/g, ': <span class="b">$1</span>')
+    .replace(/: (-?\d+\.?\d*)/g, ': <span class="n">$1</span>');
+}
+
+function statusLine(elId, kind, text) {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<div class="status-line ${kind}"><span class="dot"></span><span>${text}</span></div>`;
+}
+
+function busy(elId, text) {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<div class="status-line"><div class="spinner"></div><span>${text}</span></div>`;
+}
+
+function showOut(elId, data) {
+  const el = document.getElementById(elId);
+  el.style.display = 'block';
+  el.innerHTML = fmt(data);
+}
+
+function openImg(url) {
+  document.getElementById('modal-img').src = url;
+  document.getElementById('modal').classList.add('open');
+}
+
+function renderShots(elId, evidencias) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  if (!evidencias) return;
+  for (const ev of evidencias) {
+    const path = ev.path || ev;
+    const rel = String(path).split('_inspect').pop().replace(/^[\\/]+/, '').replace(/\\/g, '/');
+    const url = `${API}/demo/eps/evidencia/${rel}`;
+    const a = document.createElement('a');
+    a.href = '#'; a.title = rel;
+    a.onclick = (e) => { e.preventDefault(); openImg(url); };
+    const img = document.createElement('img');
+    img.src = url; img.alt = rel;
+    img.onerror = () => { a.textContent = rel.split('/').pop(); };
+    a.appendChild(img);
+    el.appendChild(a);
+  }
+}
+
+async function runOcr() {
+  const f = document.getElementById('ocr-file').files[0];
+  if (!f) { statusLine('ocr-status', 'err', 'Selecciona un PDF primero.'); return; }
+  busy('ocr-status', `Enviando ${f.name} a GPT-4o-mini Vision…`);
+  const fd = new FormData(); fd.append('file', f);
+  try {
+    const r = await fetch(`${API}/demo/ocr`, { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) { statusLine('ocr-status', 'err', data.detail || `HTTP ${r.status}`); showOut('ocr-out', data); return; }
+    const conf = data.confidence ? `confianza ${(data.confidence*100).toFixed(0)}%` : '';
+    statusLine('ocr-status', 'ok', `Extracción completada · ${data.engine} · ${conf}`);
+    showOut('ocr-out', data);
+    // Guardar para conexión con RETHUS y ADRES
+    _lastOcr = data.extracted_data || {};
+    _lastRethus = null; _lastAdres = null;
+    propagateOcrToRethus();
+    propagateOcrToAdres();
+    updateReporteState();
+  } catch (e) { statusLine('ocr-status', 'err', String(e)); }
+}
+
+// Propaga datos del PDF al formulario de RETHUS
+function propagateOcrToRethus() {
+  if (!_lastOcr) return;
+  const reg = (_lastOcr.registro_medico || '').toString().trim();
+  const nom = (_lastOcr.medico_nombre || '').toString().trim();
+  document.getElementById('rh-reg').value = reg;
+  document.getElementById('rh-nom').value = nom;
+  const btn = document.getElementById('rh-btn');
+  const row = btn.parentElement;
+  if (reg) { btn.disabled = false; row.style.opacity = '1'; } else { btn.disabled = true; }
+
+  const fb = document.getElementById('rh-banner');
+  fb.innerHTML = `
+    <div class="status-line ${reg ? 'ok' : 'warn'}" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div><span class="dot"></span> <strong>${reg ? 'Datos del médico cargados desde el PDF' : 'IA no encontró el registro médico en el PDF'}</strong></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font-size:12px">
+        <div><div class="meta">Médico</div><strong>${nom || '—'}</strong></div>
+        <div><div class="meta">Registro</div><strong>${reg || '—'}</strong></div>
+      </div>
+      ${reg ? '<div class="meta">→ Pulsa <strong>Validar médico</strong> para consultar RETHUS</div>' : ''}
+    </div>`;
+}
+
+// Propaga datos del PDF al formulario de ADRES y muestra banner
+function propagateOcrToAdres() {
+  if (!_lastOcr) return;
+  const tipo = (_lastOcr.paciente_tipo_documento || _lastOcr.tipo_documento || 'CC').toUpperCase();
+  const num = _lastOcr.paciente_numero_documento || _lastOcr.numero_documento || '';
+  const eps = _lastOcr.eps_detectada || '';
+  const nombre = _lastOcr.paciente_nombre || _lastOcr.trabajador_nombre || '';
+
+  document.getElementById('ad-num').value = num;
+  document.getElementById('ad-eps').value = eps;
+  const sel = document.getElementById('ad-tipo');
+  if (tipo && Array.from(sel.options).some(o => o.value === tipo)) sel.value = tipo;
+
+  // Habilitar botón solo si tenemos cédula
+  const btn = document.getElementById('ad-btn');
+  const row = btn.parentElement;
+  if (num) {
+    btn.disabled = false;
+    row.style.opacity = '1';
+  } else {
+    btn.disabled = true;
+  }
+
+  const fb = document.getElementById('ad-fallback');
+  fb.innerHTML = `
+    <div class="status-line ${num ? 'ok' : 'warn'}" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div><span class="dot"></span> <strong>${num ? 'Datos del paciente cargados desde el PDF' : 'IA no encontró la cédula del paciente en el PDF'}</strong></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font-size:12px">
+        <div><div class="meta">Paciente</div><strong>${nombre || '—'}</strong></div>
+        <div><div class="meta">Tipo doc</div><strong>${tipo}</strong></div>
+        <div><div class="meta">Número</div><strong>${num || '—'}</strong></div>
+        <div><div class="meta">EPS según PDF</div><strong>${eps || '—'}</strong></div>
+      </div>
+      ${num ? '<div class="meta">→ Pulsa <strong>Validar afiliación</strong> para consultar ADRES con estos datos</div>' : ''}
+    </div>`;
+}
+
+async function runRethus() {
+  const reg = document.getElementById('rh-reg').value.trim();
+  const nom = document.getElementById('rh-nom').value.trim();
+  if (!reg) { statusLine('rh-status', 'err', 'Falta registro médico (procesa el PDF primero).'); return; }
+  busy('rh-status', `Consultando RETHUS para registro ${reg}…`);
+  try {
+    const r = await fetch(`${API}/demo/rethus`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ registro_medico: reg, medico_nombre: nom, tipo_documento: 'CC', numero_documento: reg })
+    });
+    const data = await r.json();
+    const k = data.status === 'success' || data.medico?.rethus === 'VALIDADO' ? 'ok'
+            : data.status === 'not_found' ? 'warn' : 'err';
+    statusLine('rh-status', k, `RETHUS · ${data.status || 'sin status'} · ${data.medico?.rethus || ''}`);
+    showOut('rh-out', data);
+    _lastRethus = data;
+    updateReporteState();
+  } catch (e) { statusLine('rh-status', 'err', String(e)); }
+}
+
+async function runAdres() {
+  const tipo = document.getElementById('ad-tipo').value;
+  const num = document.getElementById('ad-num').value.trim();
+  const eps = document.getElementById('ad-eps').value.trim();
+  document.getElementById('ad-fallback').innerHTML = '';
+  busy('ad-status', `Consultando ADRES para ${tipo} ${num}…`);
+  try {
+    const url = `${API}/demo/adres/validar?tipo_documento=${tipo}&numero_documento=${num}&eps_laravel=${encodeURIComponent(eps)}`;
+    const r = await fetch(url, { method: 'POST' });
+    const data = await r.json();
+    const map = { success: 'ok', not_found: 'warn', manual_verification_required: 'warn', error: 'err' };
+    statusLine('ad-status', map[data.status] || 'err', `ADRES · ${data.status}` + (data.eps_encontrada ? ` · ${data.eps_encontrada}` : ''));
+
+    if (data.status === 'success') {
+      renderAdresSuccess(data);
+    } else if (data.status === 'manual_verification_required' || data.status === 'error') {
+      // Captcha bloqueado → modo asistido automático
+      await runAdresAsistido(tipo, num, eps);
+      return;
+    }
+    showOut('ad-out', data);
+    _lastAdres = data;
+    updateReporteState();
+  } catch (e) { statusLine('ad-status', 'err', String(e)); }
+}
+
+function renderAdresSuccess(data) {
+  const fb = document.getElementById('ad-fallback');
+  const coin = data.coincide_con_eps_laravel;
+  const coinTxt = coin === true ? '<span style="color:var(--ok)">✓ Coincide con EPS del PDF</span>'
+                : coin === false ? '<span style="color:var(--err)">⚠ No coincide con EPS del PDF</span>'
+                : '';
+  fb.innerHTML = `
+    <div class="status-line ok" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div><span class="dot"></span> <strong>Consulta completada</strong></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;font-size:13px">
+        <div><div class="meta">EPS encontrada</div><strong>${data.eps_encontrada || '—'}</strong></div>
+        <div><div class="meta">Estado afiliación</div><strong>${data.estado_afiliacion || '—'}</strong></div>
+        <div><div class="meta">Fecha validación</div><strong>${data.fecha_validacion || '—'}</strong></div>
+      </div>
+      <div>${coinTxt}</div>
+    </div>`;
+}
+
+async function runAdresAsistido(tipo, num, eps) {
+  const fb = document.getElementById('ad-fallback');
+  fb.innerHTML = `
+    <div class="status-line warn" style="flex-direction:column;align-items:stretch;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="spinner"></div>
+        <div>
+          <strong>Modo asistido activado</strong>
+          <div class="meta">El bot va a abrir Chrome (si no está abierto), llenará los inputs con la cédula <b>${num}</b> y esperará a que tú resuelvas el captcha y pulses <b>Consultar</b>. Luego leerá el resultado automáticamente.</div>
+        </div>
+      </div>
+      <div class="meta">Tiempo máximo de espera: 180s. <strong>No cierres esta pestaña.</strong></div>
+    </div>`;
+  statusLine('ad-status', 'warn', 'Modo asistido: esperando interacción humana en Chrome…');
+  try {
+    const url = `${API}/demo/adres/asistido?tipo_documento=${tipo}&numero_documento=${num}&eps_laravel=${encodeURIComponent(eps)}&wait_seconds=180`;
+    const r = await fetch(url, { method: 'POST' });
+    const data = await r.json();
+    const map = { success: 'ok', not_found: 'warn', manual_verification_required: 'warn', error: 'err' };
+    statusLine('ad-status', map[data.status] || 'err', `ADRES asistido · ${data.status}` + (data.eps_encontrada ? ` · ${data.eps_encontrada}` : ''));
+
+    if (data.status === 'success') {
+      renderAdresSuccess(data);
+    } else if (data.status === 'not_found') {
+      fb.innerHTML = `
+        <div class="status-line warn">
+          <span class="dot"></span>
+          <span>El BDUA no encontró afiliación activa para el documento <b>${num}</b></span>
+        </div>`;
+    } else {
+      fb.innerHTML = `
+        <div class="status-line err">
+          <span class="dot"></span>
+          <span>${data.manual_verification?.hint || 'No se pudo completar la consulta asistida.'}</span>
+        </div>`;
+    }
+    showOut('ad-out', data);
+    _lastAdres = data;
+    updateReporteState();
+  } catch (e) {
+    statusLine('ad-status', 'err', String(e));
+  }
+}
+
+let _popupTimer = null;
+function renderManualVerify(mv, epsLaravel) {
+  const fb = document.getElementById('ad-fallback');
+  const shotUrl = `${API}${mv.evidencia_screenshot}`;
+  const portal = mv.consulta_url || mv.portal_url;
+
+  fb.innerHTML = `
+    <div class="status-line warn" style="flex-direction:column;align-items:stretch;gap:14px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="dot"></span>
+        <div>
+          <strong>Flujo asistido híbrido activado</strong>
+          <div class="meta" style="margin-top:2px">El portal exigió reCAPTCHA Enterprise. Sigue los 3 pasos para completar la validación con trazabilidad.</div>
+        </div>
+      </div>
+
+      <ol style="margin:0;padding-left:20px;font-size:13px;line-height:1.7">
+        <li><strong>Bot ejecutado</strong> → captcha detectado <a href="#" onclick="event.preventDefault();openImg('${shotUrl}')" style="color:var(--accent)">(ver evidencia)</a></li>
+        <li><strong>Consulta humana</strong> → <button id="av-open" onclick="openAdresPopup('${portal}','${mv.numero_documento}')">Abrir portal ADRES ↗</button></li>
+        <li><strong>Registra el resultado</strong> en el formulario abajo</li>
+      </ol>
+
+      <div id="av-popup-status" class="meta" style="margin-top:-4px"></div>
+
+      <div id="av-form" style="display:none;background:var(--bg-elev);padding:14px;border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">Registrar resultado de consulta manual</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <input id="av-eps" placeholder="EPS encontrada (ej. SURA, SANITAS)" />
+          <select id="av-estado">
+            <option value="">Estado afiliación…</option>
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+            <option value="SUSPENDIDO">SUSPENDIDO</option>
+            <option value="RETIRADO">RETIRADO</option>
+            <option value="NO_ENCONTRADO">NO ENCONTRADO</option>
+          </select>
+          <input id="av-operador" placeholder="Operador (tu usuario)" value="operador.demo" />
+          <input id="av-fecha" type="date" value="${new Date().toISOString().slice(0,10)}" />
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button onclick="submitManualResult('${mv.tipo_documento}','${mv.numero_documento}','${epsLaravel}')">Registrar resultado</button>
+          <button class="ghost" onclick="document.getElementById('av-form').style.display='none'">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="av-result"></div>
+    </div>`;
+}
+
+function openAdresPopup(url, doc) {
+  const w = window.open(url, 'adres_popup', 'width=1100,height=850');
+  if (!w) {
+    document.getElementById('av-popup-status').innerHTML =
+      '<span style="color:var(--err)">Tu navegador bloqueó la ventana emergente. Permite popups y reintenta.</span>';
+    return;
+  }
+  navigator.clipboard?.writeText(doc).catch(()=>{});
+  document.getElementById('av-popup-status').innerHTML =
+    `Ventana abierta. Documento <strong>${doc}</strong> copiado al portapapeles. Cuando termines la consulta, cierra la ventana y registra el resultado.`;
+  document.getElementById('av-form').style.display = 'block';
+  if (_popupTimer) clearInterval(_popupTimer);
+  _popupTimer = setInterval(() => {
+    if (w.closed) {
+      clearInterval(_popupTimer); _popupTimer = null;
+      document.getElementById('av-popup-status').innerHTML =
+        '<span style="color:var(--ok)">✓ Ventana cerrada — registra el resultado que viste en el portal.</span>';
+    }
+  }, 800);
+}
+
+function submitManualResult(tipo, num, epsLaravel) {
+  const eps = document.getElementById('av-eps').value.trim().toUpperCase();
+  const estado = document.getElementById('av-estado').value;
+  const op = document.getElementById('av-operador').value.trim();
+  const fecha = document.getElementById('av-fecha').value;
+  if (!estado) { alert('Selecciona el estado de afiliación'); return; }
+  if (!op) { alert('Indica el operador'); return; }
+
+  const norm = (s) => (s || '').toUpperCase().replace(/\b(EPS|S\.?A\.?S?\.?|EAPB)\b/g,'').replace(/\s+/g,' ').trim();
+  const coincide = eps && epsLaravel ? norm(eps) === norm(epsLaravel) : null;
+
+  const record = {
+    status: 'manual_verification_completed',
+    fecha_validacion: fecha,
+    eps_encontrada: eps || null,
+    estado_afiliacion: estado,
+    coincide_con_eps_laravel: coincide,
+    manual_verification: {
+      tipo_documento: tipo,
+      numero_documento: num,
+      eps_laravel_esperada: epsLaravel,
+      operador: op,
+      registrado_en: new Date().toISOString(),
+      fuente: 'consulta_humana_asistida'
+    }
+  };
+
+  const ok = estado === 'ACTIVO' && (coincide === null || coincide === true);
+  const el = document.getElementById('av-result');
+  el.innerHTML = `
+    <div class="status-line ${ok ? 'ok' : 'warn'}" style="margin-top:10px">
+      <span class="dot"></span>
+      <span>Resultado registrado por <strong>${op}</strong> · ${estado}${eps?' · '+eps:''}${coincide!==null?(coincide?' · ✓ coincide':' · ⚠ no coincide'):''}</span>
+    </div>`;
+  showOut('ad-out', record);
+  statusLine('ad-status', ok ? 'ok' : 'warn',
+    `ADRES · manual_verification_completed · ${estado}${eps?' · '+eps:''}`);
+  _lastAdres = record;
+  updateReporteState();
+}
+
+// ╔══════════════ REPORTE FINAL ══════════════╗
+function updateReporteState() {
+  const btn = document.getElementById('rep-btn');
+  const hint = document.getElementById('rep-hint');
+  const tag = document.getElementById('rep-tag');
+
+  const haveOcr = !!_lastOcr;
+  const haveRh  = !!_lastRethus;
+  const haveAd  = !!_lastAdres;
+
+  const done = [haveOcr, haveRh, haveAd].filter(Boolean).length;
+  hint.textContent = `Validaciones completadas: ${done}/3 (PDF: ${haveOcr?'✓':'·'}, RETHUS: ${haveRh?'✓':'·'}, ADRES: ${haveAd?'✓':'·'})`;
+
+  if (haveOcr && haveRh && haveAd) {
+    btn.disabled = false;
+    tag.textContent = 'Listo para generar'; tag.className = 'tag ok';
+  } else {
+    btn.disabled = true;
+    tag.textContent = 'Pendiente'; tag.className = 'tag warn';
+  }
+}
+
+function runReporte() {
+  // Evaluar criterios
+  const ocr = _lastOcr || {};
+  const rh = _lastRethus || {};
+  const ad = _lastAdres || {};
+
+  const checks = [];
+
+  // PDF — campos críticos
+  const camposPdf = {
+    'Número de incapacidad': ocr.numero_incapacidad,
+    'Fecha de inicio': ocr.fecha_inicio,
+    'Fecha de fin': ocr.fecha_fin,
+    'Días': ocr.dias,
+    'Diagnóstico (CIE-10)': ocr.diagnostico_codigo,
+    'Paciente': ocr.paciente_nombre,
+    'Cédula paciente': ocr.paciente_numero_documento,
+    'EPS detectada': ocr.eps_detectada,
+    'Médico': ocr.medico_nombre,
+    'Registro médico': ocr.registro_medico,
+  };
+  for (const [k, v] of Object.entries(camposPdf)) {
+    checks.push({ grupo: 'PDF / IA', item: k, ok: !!v, valor: v || '— faltante —' });
+  }
+
+  // RETHUS
+  const rhEstado = rh.medico?.rethus || rh.status || 'desconocido';
+  const rhOk = rh.status === 'success' || rh.medico?.rethus === 'VALIDADO';
+  checks.push({ grupo: 'RETHUS', item: 'Médico validado en MinSalud', ok: rhOk, valor: rhEstado });
+  if (rh.medico?.nombre) checks.push({ grupo: 'RETHUS', item: 'Nombre confirmado', ok: true, valor: rh.medico.nombre });
+  if (rh.medico?.profesion) checks.push({ grupo: 'RETHUS', item: 'Profesión', ok: true, valor: rh.medico.profesion });
+
+  // ADRES
+  const adOk = ad.status === 'success' || ad.status === 'manual_verification_completed';
+  const adActivo = (ad.estado_afiliacion || '').toUpperCase() === 'ACTIVO';
+  const coincide = ad.coincide_con_eps_laravel;
+  checks.push({ grupo: 'ADRES', item: 'Consulta de afiliación', ok: adOk, valor: ad.status });
+  checks.push({ grupo: 'ADRES', item: 'EPS encontrada en BDUA', ok: !!ad.eps_encontrada, valor: ad.eps_encontrada || '—' });
+  checks.push({ grupo: 'ADRES', item: 'Afiliación ACTIVA', ok: adActivo, valor: ad.estado_afiliacion || '—' });
+  checks.push({
+    grupo: 'ADRES',
+    item: 'EPS del PDF coincide con BDUA',
+    ok: coincide === true,
+    valor: coincide === true ? '✓ Coincide' : coincide === false ? '⚠ No coincide' : 'No comparable'
+  });
+
+  const total = checks.length;
+  const okCount = checks.filter(c => c.ok).length;
+  const pct = Math.round((okCount / total) * 100);
+  const completo = okCount === total;
+  const aceptable = pct >= 80;
+
+  // Agrupar
+  const grupos = {};
+  for (const c of checks) {
+    (grupos[c.grupo] ||= []).push(c);
+  }
+
+  const status = completo ? 'COMPLETO Y VERIFICADO'
+               : aceptable ? 'APROBADO CON OBSERVACIONES'
+               : 'INCOMPLETO — REQUIERE REVISIÓN HUMANA';
+  const statusKind = completo ? 'ok' : aceptable ? 'warn' : 'err';
+  const statusColor = completo ? 'var(--ok)' : aceptable ? 'var(--warn)' : 'var(--err)';
+
+  let html = `
+    <div class="status-line ${statusKind}" style="flex-direction:column;align-items:stretch;gap:14px;margin-top:8px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:64px;height:64px;border-radius:50%;border:4px solid ${statusColor};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:${statusColor}">${pct}%</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:${statusColor}">${status}</div>
+          <div class="meta">${okCount} de ${total} verificaciones aprobadas</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:14px">`;
+
+  for (const [grupo, items] of Object.entries(grupos)) {
+    const gOk = items.filter(i => i.ok).length;
+    const gTot = items.length;
+    html += `
+      <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:10px;display:flex;justify-content:space-between">
+          <span>${grupo}</span>
+          <span class="meta">${gOk}/${gTot}</span>
+        </div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">`;
+    for (const it of items) {
+      const icon = it.ok ? '<span style="color:var(--ok)">✓</span>' : '<span style="color:var(--err)">✗</span>';
+      html += `
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:6px 4px;width:20px">${icon}</td>
+          <td style="padding:6px 4px;color:var(--text)">${it.item}</td>
+          <td style="padding:6px 4px;color:var(--text-dim);text-align:right;font-family:monospace;font-size:11px">${String(it.valor).slice(0,40)}</td>
+        </tr>`;
+    }
+    html += `</table></div>`;
+  }
+  html += `</div>`;
+
+  // Resumen / acción recomendada
+  const accion = completo
+    ? '✅ La incapacidad puede radicarse automáticamente en Laravel sin intervención humana.'
+    : aceptable
+      ? '⚠️ La incapacidad puede radicarse pero conviene revisar las observaciones marcadas.'
+      : '🛑 La incapacidad NO debe radicarse automáticamente. Asigna a operador humano para verificación.';
+
+  html += `
+    <div style="margin-top:14px;padding:14px;background:var(--code-bg);border-radius:10px;border-left:4px solid ${statusColor}">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Acción recomendada</div>
+      <div style="font-size:13px;color:var(--text)">${accion}</div>
+    </div>
+
+    <details style="margin-top:12px">
+      <summary>Ver JSON consolidado del reporte</summary>
+      <div class="out" style="display:block;margin-top:8px">${fmt({
+        generado_en: new Date().toISOString(),
+        score_global: pct,
+        status: status,
+        recomendacion: accion,
+        validaciones_aprobadas: okCount,
+        validaciones_totales: total,
+        pdf: ocr,
+        rethus: rh,
+        adres: ad,
+      })}</div>
+    </details>`;
+
+  document.getElementById('rep-body').innerHTML = html;
+  document.getElementById('rep-tag').textContent = status;
+  document.getElementById('rep-tag').className = `tag ${statusKind}`;
+}
+</script>
+
+</body>
+</html>

@@ -10,7 +10,6 @@ class TestSettings:
     def test_default_values(self):
         s = Settings(internal_token="test-token")
         assert s.app_env == "development"
-        assert s.ocr_engine == "tesseract"
         assert s.playwright_headless is True
 
     def test_allowed_hosts_list(self):

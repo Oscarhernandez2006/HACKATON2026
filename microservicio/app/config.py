@@ -23,11 +23,10 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
 
-    # ── OCR ──
-    ocr_engine: str = "tesseract"  # tesseract | textract
-    aws_access_key_id: str | None = None
-    aws_secret_access_key: str | None = None
-    aws_region: str = "us-east-1"
+    # ── IA Extractor (GitHub Models) ──
+    github_token: str | None = None
+    github_models_endpoint: str = "https://models.github.ai/inference"
+    github_models_model: str = "openai/gpt-4o-mini"
 
     # ── Validaciones externas ──
     adres_base_url: str = "https://appweb.adres.gov.co"

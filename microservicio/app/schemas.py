@@ -195,7 +195,11 @@ class OcrExtractedData(BaseModel):
     fecha_fin: str | None = None
     dias: int | None = None
     diagnostico_codigo: str | None = None
+    diagnostico_descripcion: str | None = None
     eps_detectada: str | None = None
+    paciente_nombre: str | None = None
+    paciente_tipo_documento: str | None = None
+    paciente_numero_documento: str | None = None
     medico_nombre: str | None = None
     registro_medico: str | None = None
     ips: str | None = None
@@ -213,11 +217,18 @@ class OcrResult(BaseModel):
 # ╚══════════════════════════════════════════════════════════════════╝
 
 class AdresResult(BaseModel):
-    status: str  # "success" | "not_found" | "error"
+    # "success" | "not_found" | "error" | "manual_verification_required"
+    status: str
     fecha_validacion: str | None = None
     eps_encontrada: str | None = None
     estado_afiliacion: str | None = None
     coincide_con_eps_laravel: bool | None = None
+    # URL servible del screenshot de la consulta (presente siempre que haya evidencia)
+    evidencia_screenshot: str | None = None
+    # URL servible del HTML capturado (para depuración del parser)
+    evidencia_html: str | None = None
+    # Cuando status == "manual_verification_required": metadatos para el operador
+    manual_verification: dict | None = None
 
 
 # ╔══════════════════════════════════════════════════════════════════╗

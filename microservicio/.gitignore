@@ -12,3 +12,5 @@ build/
 *.log
 .venv/
 venv/
+scripts/_inspect/
+chrome-adres-profile/

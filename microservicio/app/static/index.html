@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De PDF a Radicado — Incapacidades.ai</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid #334155;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 700; color: #fff;
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header .badge {
+      background: #1e3a5f;
+      color: #60a5fa;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .card-header .icon {
+      font-size: 1.1rem;
+    }
+
+    .card-body { padding: 1.25rem; }
+
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed #475569;
+      border-radius: 10px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .upload-zone .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .upload-zone p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .upload-zone p strong {
+      color: #60a5fa;
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* File list */
+    .file-list {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #0f172a;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .file-item .file-icon { color: #f87171; font-size: 1.2rem; }
+
+    .file-item .file-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-item .file-size { color: #64748b; font-size: 0.75rem; }
+
+    .file-item .remove-btn {
+      background: none; border: none; color: #64748b;
+      cursor: pointer; font-size: 1rem; padding: 0.2rem;
+    }
+    .file-item .remove-btn:hover { color: #f87171; }
+
+    /* Button */
+    .btn-process {
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-process:hover { opacity: 0.9; }
+    .btn-process:active { transform: scale(0.98); }
+    .btn-process:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Engine Toggle */
+    .engine-toggle {
+      margin-top: 1.25rem;
+    }
+
+    .engine-label {
+      display: block;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .toggle-group {
+      display: flex;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 0.25rem;
+      gap: 0.25rem;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 0.55rem;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:hover { color: #94a3b8; }
+
+    .toggle-btn.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: #fff;
+    }
+
+    /* Progress */
+    .progress-bar {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .progress-bar.active { display: block; }
+
+    .progress-track {
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      border-radius: 3px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+
+    .progress-text {
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    /* Results */
+    .results-placeholder {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: #475569;
+    }
+
+    .results-placeholder .placeholder-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .result-block {
+      margin-bottom: 1.5rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-block h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .field-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 0.7rem 0.85rem;
+    }
+
+    .field-card.full { grid-column: 1 / -1; }
+
+    .field-label {
+      font-size: 0.7rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .field-value {
+      font-size: 0.95rem;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .field-value.highlight { color: #60a5fa; }
+    .field-value.success { color: #34d399; }
+    .field-value.warning { color: #fbbf24; }
+
+    .confidence-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+    }
+
+    .confidence-track {
+      flex: 1;
+      height: 4px;
+      background: #334155;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s;
+    }
+
+    .confidence-fill.high { background: #34d399; }
+    .confidence-fill.mid { background: #fbbf24; }
+    .confidence-fill.low { background: #f87171; }
+
+    .confidence-pct {
+      font-size: 0.7rem;
+      color: #64748b;
+      min-width: 32px;
+      text-align: right;
+    }
+
+    /* Review banner */
+    .review-banner {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #334155;
+    }
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: #94a3b8; }
+
+    .tab.active {
+      color: #60a5fa;
+      border-bottom-color: #3b82f6;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* JSON view */
+    .json-view {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #cbd5e1;
+    }
+
+    .json-key { color: #60a5fa; }
+    .json-string { color: #34d399; }
+    .json-number { color: #fbbf24; }
+    .json-bool { color: #f472b6; }
+    .json-null { color: #64748b; }
+
+    /* Multi results */
+    .result-tabs {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      background: #0f172a;
+      overflow-x: auto;
+    }
+
+    .result-tab {
+      padding: 0.4rem 0.75rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .result-tab:hover { border-color: #475569; }
+
+    .result-tab.active {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+
+    .result-panel { display: none; }
+    .result-panel.active { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">📄</div>
+    <h1>De PDF a Radicado</h1>
+    <span class="badge">HACKATON 2026</span>
+  </div>
+
+  <div class="container">
+    <!-- Left: Upload Panel -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">📤</span> Subir Incapacidades
+        </div>
+        <div class="card-body">
+          <div class="upload-zone" id="dropZone">
+            <div class="upload-icon">📁</div>
+            <p>
+              Arrastra tus <strong>PDFs de incapacidad</strong> aquí<br>
+              o haz clic para seleccionar
+            </p>
+            <p style="margin-top:0.5rem; font-size:0.75rem; color:#475569">
+              Soporta: Sanitas, Sura, Salud Total y más
+            </p>
+            <input type="file" id="fileInput" accept=".pdf" multiple>
+          </div>
+
+          <div class="file-list" id="fileList"></div>
+
+          <button class="btn-process" id="btnProcess" disabled>
+            🤖 Procesar Incapacidades con IA
+          </button>
+
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Procesando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline info -->
+      <div class="card" style="margin-top:1rem">
+        <div class="card-header">
+          <span class="icon">⚙️</span> Pipeline del Microservicio
+        </div>
+        <div class="card-body" style="font-size:0.82rem; color:#94a3b8; line-height:1.8">
+          <div>1️⃣ <strong>PDF → Imagen</strong> — PyMuPDF renderiza a 150 DPI</div>
+          <div>2️⃣ <strong>Imagen → Datos</strong> — GPT-4o-mini Vision extrae campos</div>
+          <div>3️⃣ <strong>Validación</strong> — Score de confianza por campo</div>
+          <div>4️⃣ <strong>Respuesta JSON</strong> — Datos listos para radicación</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Results Panel -->
+    <div class="card" id="resultsCard">
+      <div class="card-header">
+        <span class="icon">📋</span> Datos Extraídos
+      </div>
+
+      <div id="resultTabs" class="result-tabs" style="display:none"></div>
+
+      <div class="tabs" id="viewTabs" style="display:none">
+        <button class="tab active" data-tab="visual">Vista Campos</button>
+        <button class="tab" data-tab="json">JSON Respuesta</button>
+        <button class="tab" data-tab="laravel">📤 JSON Laravel</button>
+      </div>
+
+      <div class="card-body" id="resultsBody">
+        <div class="results-placeholder">
+          <div class="placeholder-icon">📄</div>
+          <p>Sube un PDF de incapacidad para ver<br>los datos extraídos aquí</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const btnProcess = document.getElementById('btnProcess');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const resultsBody = document.getElementById('resultsBody');
+    const resultTabs = document.getElementById('resultTabs');
+    const viewTabs = document.getElementById('viewTabs');
+
+    let selectedFiles = [];
+    let allResults = [];
+
+    // Drag & Drop
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      addFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', () => {
+      addFiles(fileInput.files);
+      fileInput.value = '';
+    });
+
+    function addFiles(files) {
+      for (const f of files) {
+        if (f.type === 'application/pdf' && !selectedFiles.some(s => s.name === f.name)) {
+          selectedFiles.push(f);
+        }
+      }
+      renderFileList();
+    }
+
+    function removeFile(idx) {
+      selectedFiles.splice(idx, 1);
+      renderFileList();
+    }
+
+    function renderFileList() {
+      fileList.innerHTML = selectedFiles.map((f, i) => `
+        <div class="file-item">
+          <span class="file-icon">📄</span>
+          <span class="file-name">${f.name}</span>
+          <span class="file-size">${(f.size / 1024).toFixed(0)} KB</span>
+          <button class="remove-btn" onclick="removeFile(${i})">✕</button>
+        </div>
+      `).join('');
+      btnProcess.disabled = selectedFiles.length === 0;
+    }
+
+    // Process
+    btnProcess.addEventListener('click', async () => {
+      if (selectedFiles.length === 0) return;
+
+      btnProcess.disabled = true;
+      progressBar.classList.add('active');
+      allResults = [];
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const pct = Math.round(((i) / selectedFiles.length) * 100);
+        progressFill.style.width = pct + '%';
+        progressText.textContent = `🤖 IA procesando ${i + 1}/${selectedFiles.length}: ${selectedFiles[i].name}`;
+
+        const formData = new FormData();
+        formData.append('file', selectedFiles[i]);
+
+        try {
+          const resp = await fetch('/demo/ocr', { method: 'POST', body: formData });
+          const data = await resp.json();
+          allResults.push({ filename: selectedFiles[i].name, status: resp.status, data });
+        } catch (err) {
+          allResults.push({ filename: selectedFiles[i].name, status: 0, error: err.message });
+        }
+      }
+
+      progressFill.style.width = '100%';
+      progressText.textContent = `✅ ${allResults.length} archivo(s) procesado(s)`;
+
+      setTimeout(() => {
+        progressBar.classList.remove('active');
+        btnProcess.disabled = false;
+      }, 1500);
+
+      renderResults();
+    });
+
+    // Render Results
+    function renderResults() {
+      if (allResults.length === 0) return;
+
+      viewTabs.style.display = 'flex';
+
+      if (allResults.length > 1) {
+        resultTabs.style.display = 'flex';
+        resultTabs.innerHTML = allResults.map((r, i) => `
+          <button class="result-tab ${i === 0 ? 'active' : ''}" data-idx="${i}">
+            ${r.filename.replace('.pdf', '')}
+          </button>
+        `).join('');
+
+        resultTabs.querySelectorAll('.result-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            resultTabs.querySelectorAll('.result-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            showResult(parseInt(btn.dataset.idx));
+          });
+        });
+      } else {
+        resultTabs.style.display = 'none';
+      }
+
+      showResult(0);
+    }
+
+    function showResult(idx) {
+      const r = allResults[idx];
+      if (!r || r.status !== 200) {
+        resultsBody.innerHTML = `<div class="review-banner">⚠️ Error procesando ${r?.filename}: ${r?.error || 'Error del servidor'}</div>`;
+        return;
+      }
+
+      const d = r.data;
+      const ed = d.extracted_data || {};
+      const conf = d.confidence || {};
+      const review = d.needs_review || [];
+
+      // Build visual view
+      let visualHtml = '';
+
+      if (review.length > 0) {
+        visualHtml += `<div class="review-banner">⚠️ Campos para revisión: <strong>${review.join(', ')}</strong></div>`;
+      }
+
+      // EPS & General
+      visualHtml += `
+        <div class="result-block">
+          <h3>🏥 Información General</h3>
+          <div class="fields-grid">
+            ${fieldCard('Nº Incapacidad', ed.numero_incapacidad, conf.numero_incapacidad, 'highlight')}
+            ${fieldCard('EPS Detectada', ed.eps_detectada, conf.eps_detectada, 'success')}
+            ${fieldCard('Tipo', ed.tipo, conf.tipo)}
+            ${fieldCard('Origen', ed.origen)}
+            ${fieldCard('Días', ed.dias, conf.dias)}
+            ${fieldCard('Prórroga', ed.es_prorroga ? 'Sí' : 'No')}
+          </div>
+        </div>
+      `;
+
+      // Diagnosis
+      visualHtml += `
+        <div class="result-block">
+          <h3>🩺 Diagnóstico</h3>
+          <div class="fields-grid">
+            ${fieldCard('Código CIE-10', ed.diagnostico_codigo, conf.diagnostico_codigo, 'highlight')}
+            ${fieldCard('Descripción', ed.diagnostico_descripcion, conf.diagnostico_descripcion)}
+          </div>
+        </div>
+      `;
+
+      // Dates
+      visualHtml += `
+        <div class="result-block">
+          <h3>📅 Fechas</h3>
+          <div class="fields-grid">
+            ${ed.fecha_expedicion ? fieldCard('Expedición', ed.fecha_expedicion, conf.fecha_expedicion) : ''}
+            ${fieldCard('Inicio', ed.fecha_inicio, conf.fecha_inicio, 'highlight')}
+            ${fieldCard('Fin', ed.fecha_fin, conf.fecha_fin, 'highlight')}
+            ${ed.fecha_atencion ? fieldCard('Atención', ed.fecha_atencion, conf.fecha_atencion) : ''}
+          </div>
+        </div>
+      `;
+
+      // Doctor & IPS
+      visualHtml += `
+        <div class="result-block">
+          <h3>👨‍⚕️ Médico & IPS</h3>
+          <div class="fields-grid">
+            ${fieldCard('Médico', ed.medico_nombre, conf.medico_nombre)}
+            ${fieldCard('Registro Médico', ed.registro_medico, conf.registro_medico)}
+            ${fieldCard('IPS', ed.ips, conf.ips, '', true)}
+          </div>
+        </div>
+      `;
+
+      // JSON view (respuesta cruda del endpoint)
+      const jsonHtml = `<div class="json-view">${syntaxHighlight(JSON.stringify(d, null, 2))}</div>`;
+
+      // JSON Laravel (payload del callback a Laravel)
+      const laravelPayload = d.callback_preview || { info: 'No disponible' };
+      const laravelHtml = `
+        <div style="margin-bottom:0.75rem;padding:0.75rem;background:#1e293b;border-left:3px solid #3b82f6;border-radius:4px;font-size:0.8rem;color:#cbd5e1">
+          📬 <strong>POST</strong> al <code>callback_url</code> que Laravel envió en el job.<br>
+          <span style="color:#94a3b8">Los campos <code>adres</code> y <code>rethus</code> aparecen como <code>pending</code> aquí porque la demo solo ejecuta OCR; en producción se llenan tras validar.</span>
+        </div>
+        <div class="json-view">${syntaxHighlight(JSON.stringify(laravelPayload, null, 2))}</div>
+      `;
+
+      resultsBody.innerHTML = `
+        <div class="tab-content active" id="tabVisual">${visualHtml}</div>
+        <div class="tab-content" id="tabJson">${jsonHtml}</div>
+        <div class="tab-content" id="tabLaravel">${laravelHtml}</div>
+      `;
+
+      // Re-bind view tabs
+      viewTabs.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          viewTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('tabVisual').classList.toggle('active', tab.dataset.tab === 'visual');
+          document.getElementById('tabJson').classList.toggle('active', tab.dataset.tab === 'json');
+          document.getElementById('tabLaravel').classList.toggle('active', tab.dataset.tab === 'laravel');
+        });
+      });
+      // Reset to visual tab
+      viewTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      viewTabs.querySelector('[data-tab="visual"]').classList.add('active');
+    }
+
+    function fieldCard(label, value, confidence, colorClass = '', full = false) {
+      if (value === undefined || value === null) return '';
+      const cls = full ? 'field-card full' : 'field-card';
+      const valCls = colorClass ? `field-value ${colorClass}` : 'field-value';
+
+      let confHtml = '';
+      if (confidence !== undefined && confidence !== null) {
+        const pct = Math.round(confidence * 100);
+        const level = pct >= 80 ? 'high' : pct >= 60 ? 'mid' : 'low';
+        confHtml = `
+          <div class="confidence-bar">
+            <div class="confidence-track">
+              <div class="confidence-fill ${level}" style="width:${pct}%"></div>
+            </div>
+            <span class="confidence-pct">${pct}%</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="${cls}">
+          <div class="field-label">${label}</div>
+          <div class="${valCls}">${value}</div>
+          ${confHtml}
+        </div>
+      `;
+    }
+
+    function syntaxHighlight(json) {
+      return json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?/g, match => {
+          let cls = 'json-string';
+          if (match.endsWith(':')) {
+            cls = 'json-key';
+            return `<span class="${cls}">${match.slice(0, -1)}</span>:`;
+          }
+          if (/^"/.test(match)) cls = 'json-string';
+          return `<span class="${cls}">${match}</span>`;
+        })
+        .replace(/\b(true|false)\b/g, '<span class="json-bool">$1</span>')
+        .replace(/\bnull\b/g, '<span class="json-null">null</span>')
+        .replace(/\b(\d+\.?\d*)\b/g, '<span class="json-number">$1</span>');
+    }
+  </script>
+</body>
+</html>
