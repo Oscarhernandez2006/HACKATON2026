@@ -40,7 +40,7 @@ COPY . .
 # Crear directorios temporales
 RUN mkdir -p /tmp/pdf-a-radicado/evidencias
 
-EXPOSE 8000
+EXPOSE 8765
 
 # Por defecto arranca la API; en docker-compose se sobreescribe para el worker
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8765"]
